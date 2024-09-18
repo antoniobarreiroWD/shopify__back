@@ -25,56 +25,6 @@ exports.createCheckout = async (variantId, quantity) => {
         }) {
           checkout {
             id
-          }
-        }
-      }
-    `
-  }, {
-    headers: {
-      "X-Shopify-Storefront-Access-Token": process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN,
-      "Content-Type": "application/json"
-    },
-  });
-};
-
-exports.addToCheckout = async (checkoutId, variantId, quantity) => {
-  const globalVariantId = getGlobalVariantId(variantId);
-  const shopifyCheckoutUpdateUrl = `https://${process.env.SHOPIFY_STORE_URL}/api/2023-04/graphql.json`;
-
-  return axios.post(shopifyCheckoutUpdateUrl, {
-    query: `
-      mutation {
-        checkoutLineItemsAdd(checkoutId: "${checkoutId}", lineItems: [
-          { variantId: "${globalVariantId}", quantity: ${quantity} }
-        ]) {
-          checkout {
-            id
-          }
-        }
-      }
-    `
-  }, {
-    headers: {
-      "X-Shopify-Storefront-Access-Token": process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN,
-      "Content-Type": "application/json"
-    },
-  });
-};
-
-exports.getCheckout = async (checkoutId) => {
-  const shopifyCheckoutUrl = `https://${process.env.SHOPIFY_STORE_URL}/api/2023-04/graphql.json`;
-
-  return axios.post(shopifyCheckoutUrl, {
-    query: `
-      query {
-        node(id: "${checkoutId}") {
-          ... on Checkout {
-            id
-            webUrl
-            totalPriceV2 {
-              amount
-              currencyCode
-            }
             lineItems(first: 10) {
               edges {
                 node {
@@ -94,3 +44,89 @@ exports.getCheckout = async (checkoutId) => {
     },
   });
 };
+
+
+exports.addToCheckout = async (checkoutId, variantId, quantity) => {
+  const globalVariantId = getGlobalVariantId(variantId);
+  const shopifyCheckoutUpdateUrl = `https://${process.env.SHOPIFY_STORE_URL}/api/2023-04/graphql.json`;
+
+  return axios.post(shopifyCheckoutUpdateUrl, {
+    query: `
+      mutation {
+        checkoutLineItemsAdd(checkoutId: "${checkoutId}", lineItems: [
+          { variantId: "${globalVariantId}", quantity: ${quantity} }
+        ]) {
+          checkout {
+            id
+            lineItems(first: 10) {
+              edges {
+                node {
+                  title
+                  quantity
+                }
+              }
+            }
+          }
+        }
+      }
+    `
+  }, {
+    headers: {
+      "X-Shopify-Storefront-Access-Token": process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+      "Content-Type": "application/json"
+    },
+  });
+};
+
+
+exports.getCheckout = async (checkoutId) => {
+  const shopifyCheckoutUrl = `https://${process.env.SHOPIFY_STORE_URL}/api/2023-04/graphql.json`;
+
+  try {
+    const response = await axios.post(shopifyCheckoutUrl, {
+      query: `
+        query {
+          node(id: "${checkoutId}") {
+            ... on Checkout {
+              id
+              webUrl
+              totalPriceV2 {
+                amount
+                currencyCode
+              }
+              lineItems(first: 10) {
+                edges {
+                  node {
+                    title
+                    quantity
+                  }
+                }
+              }
+            }
+          }
+        }
+      `
+    }, {
+      headers: {
+        "X-Shopify-Storefront-Access-Token": process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+        "Content-Type": "application/json"
+      },
+    });
+
+    
+    if (response.data.data.node.lineItems) {
+      return response.data.data.node;
+    } else {
+      return {
+        id: checkoutId,
+        webUrl: response.data.data.node.webUrl,
+        totalPriceV2: response.data.data.node.totalPriceV2,
+        lineItems: { edges: [] } 
+      };
+    }
+  } catch (error) {
+    console.error("Error en la API de Shopify:", error.message);
+    throw error;
+  }
+};
+

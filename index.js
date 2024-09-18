@@ -5,8 +5,23 @@ require("dotenv").config();
 
 const app = express();
 const port = 3000;
+const session = require("express-session");
 
-app.use(cors());
+app.use(session({
+  secret: 'mySecretKey', 
+  resave: false,
+  saveUninitialized: true,
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production' // 'true' solo en producción
+  }
+}));
+
+app.use(
+  cors({
+    origin: "http://localhost:3001",
+    credentials: true,
+  }));
+  
 app.use(express.json());
 
 const server = http.createServer(app);
