@@ -1,5 +1,4 @@
-{
-  "name": "shopify_back",
+{  "name": "shopify_back",
   "version": "1.0.0",
   "main": "index.js",  "scripts": {
     "start": "node index.js",

@@ -25,7 +25,7 @@ Este proyecto proporciona un backend completo para integrar tiendas de Shopify c
 1. Clona el repositorio:
 ```bash
 git clone [url-del-repositorio]
-cd ec_back
+cd shopify_back
 ```
 
 2. Instala las dependencias:
