@@ -4,21 +4,22 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 const session = require("express-session");
 
 app.use(session({
-  secret: 'mySecretKey', 
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
   cookie: { 
-    secure: process.env.NODE_ENV === 'production' // 'true' solo en producción
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 horas
   }
 }));
 
 app.use(
   cors({
-    origin: "http://localhost:3001",
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   }));
   
@@ -26,7 +27,7 @@ app.use(express.json());
 
 const server = http.createServer(app);
 
-// Configurar Socket.IO
+
 require("./config/socketConfig")(server);
 
 

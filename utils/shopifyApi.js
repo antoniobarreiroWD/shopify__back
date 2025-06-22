@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-// Convertir variantId a global ID
+
 const getGlobalVariantId = (variantId) => {
   return Buffer.from(`gid://shopify/ProductVariant/${variantId}`).toString('base64');
 };
